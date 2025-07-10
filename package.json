@@ -3,7 +3,20 @@
   "version": "1.0.0",
   "description": "A custom React hook library for managing authentication status",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -17,15 +30,27 @@
     "auth",
     "hook",
     "jwt",
-    "token"
+    "token",
+    "react-hook",
+    "typescript"
   ],
-  "author": "",
+  "author": "zhengliu zhengliu92@hotmail.com",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhengliu92/react-auth-hook.git"
+  },
+  "homepage": "https://github.com/zhengliu92/react-auth-hook#readme",
+  "bugs": {
+    "url": "https://github.com/zhengliu92/react-auth-hook/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "peerDependencies": {
     "react": ">=16.8.0"
   },
   "dependencies": {
-    "@storybook/jest": "^0.2.3",
     "axios": "^1.6.0"
   },
   "devDependencies": {
@@ -35,6 +60,7 @@
     "@storybook/addon-interactions": "^7.6.3",
     "@storybook/addon-links": "^7.6.3",
     "@storybook/blocks": "^7.6.3",
+    "@storybook/jest": "^0.2.3",
     "@storybook/react": "^7.6.3",
     "@storybook/react-vite": "^7.6.3",
     "@storybook/testing-library": "^0.2.2",

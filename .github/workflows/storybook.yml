@@ -1,4 +1,4 @@
-name: Build and Deploy Example Storybook
+name: Build and Deploy Storybook
 
 on:
   push:
@@ -32,21 +32,14 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install root dependencies
+      - name: Install dependencies
         run: npm ci
 
       - name: Build library
         run: npm run build
 
-      - name: Install example dependencies
-        run: |
-          cd example
-          npm ci
-
-      - name: Build Example Storybook
-        run: |
-          cd example
-          npm run build-storybook
+      - name: Build Storybook
+        run: npm run build-storybook
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -54,7 +47,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./example/storybook-static
+          path: ./storybook-static
 
   # Deployment job
   deploy:
