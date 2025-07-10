@@ -28,9 +28,10 @@ export const AuthProvider = <T = DefaultLoginResponse>({ children, config }: Aut
     
     return {
       ...initialAuthState,
-      isLoggedIn: !!accessToken,
+      isAuthenticated: !!accessToken,
       accessToken,
       refreshToken,
+      loginResponse: null, // Login response is not persisted, will be null on refresh
     };
   });
 
@@ -56,9 +57,10 @@ export const AuthProvider = <T = DefaultLoginResponse>({ children, config }: Aut
       
       setAuthState(prev => ({
         ...prev,
-        isLoggedIn: true,
+        isAuthenticated: true,
         accessToken: access_token,
         refreshToken: refresh_token || null,
+        loginResponse: loginData, // Store the full login response
         isLoading: false,
         error: null,
       }));
@@ -81,6 +83,11 @@ export const AuthProvider = <T = DefaultLoginResponse>({ children, config }: Aut
     setAuthState(initialAuthState);
     refreshPromiseRef.current = null;
   }, []);
+
+  // Get login response function
+  const getLoginResponse = useCallback((): T | null => {
+    return authState.loginResponse;
+  }, [authState.loginResponse]);
 
   // Token refresh function
   const refreshToken = useCallback(async (): Promise<string> => {
@@ -183,6 +190,7 @@ export const AuthProvider = <T = DefaultLoginResponse>({ children, config }: Aut
     login,
     logout,
     request,
+    getLoginResponse,
     config: authConfig,
   };
 

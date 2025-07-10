@@ -17,10 +17,11 @@ export const useAuth = <T = DefaultLoginResponse>(): UseAuthResult<T> => {
   }
   
   return {
-    isLoggedIn: context.isLoggedIn,
+    isAuthenticated: context.isAuthenticated,
     login: context.login as any,
     logout: context.logout,
     request: context.request,
+    getLoginResponse: context.getLoginResponse as any,
     isLoading: context.isLoading,
     error: context.error,
   };

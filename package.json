@@ -1,5 +1,5 @@
 {
-  "name": "react-auth-hook",
+  "name": "@zheng/react-auth-hook",
   "version": "1.0.0",
   "description": "A custom React hook library for managing authentication status",
   "main": "dist/index.js",

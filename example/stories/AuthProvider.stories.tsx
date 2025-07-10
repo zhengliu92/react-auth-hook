@@ -8,7 +8,7 @@ import './mockInterceptors';
 
 // Demo Login Component
 function LoginDemo() {
-  const { login, logout, isLoggedIn, isLoading, error, request } = useAuth();
+  const { login, logout, isAuthenticated, isLoading, error, request } = useAuth();
   const [credentials, setCredentials] = useState({
     email: 'user@example.com',
     password: 'password123'
@@ -37,7 +37,7 @@ function LoginDemo() {
     }
   };
 
-  if (isLoggedIn) {
+  if (isAuthenticated) {
     return (
       <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
         <h3>✅ Authenticated!</h3>

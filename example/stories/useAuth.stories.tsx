@@ -8,7 +8,7 @@ import './mockInterceptors';
 
 // Component to demo useAuth hook features
 function UseAuthDemo() {
-  const { login, logout, isLoggedIn, isLoading, error, request } = useAuth();
+  const { login, logout, isAuthenticated, isLoading, error, request, getLoginResponse } = useAuth();
   const [testResults, setTestResults] = useState<string[]>([]);
 
   const addResult = (message: string) => {
@@ -36,6 +36,15 @@ function UseAuthDemo() {
     }
   };
 
+  const testGetLoginResponse = () => {
+    const loginResponse = getLoginResponse();
+    if (loginResponse) {
+      addResult(`✅ Login response retrieved: ${JSON.stringify(loginResponse)}`);
+    } else {
+      addResult('❌ No login response available (user not logged in or data cleared)');
+    }
+  };
+
   const testLogout = () => {
     logout();
     addResult('📤 Logged out');
@@ -52,7 +61,7 @@ function UseAuthDemo() {
       <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
         <h4>Current State:</h4>
         <ul>
-          <li><strong>isLoggedIn:</strong> {isLoggedIn ? '✅ true' : '❌ false'}</li>
+          <li><strong>isAuthenticated:</strong> {isAuthenticated ? '✅ true' : '❌ false'}</li>
           <li><strong>isLoading:</strong> {isLoading ? '⏳ true' : '✅ false'}</li>
           <li><strong>error:</strong> {error || '✅ null'}</li>
         </ul>
@@ -63,21 +72,28 @@ function UseAuthDemo() {
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button 
             onClick={testLogin} 
-            disabled={isLoading || isLoggedIn}
+            disabled={isLoading || isAuthenticated}
             style={{ padding: '8px 16px', borderRadius: '4px' }}
           >
             Test Login
           </button>
           <button 
             onClick={testAPICall} 
-            disabled={isLoading || !isLoggedIn}
+            disabled={isLoading || !isAuthenticated}
             style={{ padding: '8px 16px', borderRadius: '4px' }}
           >
             Test API Request
           </button>
           <button 
+            onClick={testGetLoginResponse} 
+            disabled={isLoading}
+            style={{ padding: '8px 16px', borderRadius: '4px' }}
+          >
+            Get Login Response
+          </button>
+          <button 
             onClick={testLogout} 
-            disabled={isLoading || !isLoggedIn}
+            disabled={isLoading || !isAuthenticated}
             style={{ padding: '8px 16px', borderRadius: '4px' }}
           >
             Test Logout
@@ -119,7 +135,8 @@ function UseAuthDemo() {
           <li><strong>login(credentials):</strong> Authenticate with credentials</li>
           <li><strong>logout():</strong> Clear authentication state</li>
           <li><strong>request(config):</strong> Make authenticated API calls</li>
-          <li><strong>isLoggedIn:</strong> Current authentication status</li>
+          <li><strong>getLoginResponse():</strong> Retrieve the full login response data</li>
+          <li><strong>isAuthenticated:</strong> Current authentication status</li>
           <li><strong>isLoading:</strong> Loading state during operations</li>
           <li><strong>error:</strong> Error messages from failed operations</li>
         </ul>

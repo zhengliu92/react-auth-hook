@@ -21,25 +21,28 @@ export type LoginResponse<T = DefaultLoginResponse> = T & {
 };
 
 export interface AuthState {
-  isLoggedIn: boolean;
+  isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
   isLoading: boolean;
   error: string | null;
+  loginResponse: any | null; // Store the full login response
 }
 
 export interface AuthContextType<T = DefaultLoginResponse> extends AuthState {
   login: (credentials: LoginCredentials) => Promise<LoginResponse<T>>;
   logout: () => void;
   request: <R = any>(config: AxiosRequestConfig) => Promise<AxiosResponse<R>>;
+  getLoginResponse: () => T | null; // Method to get the stored login response
   config: AuthConfig;
 }
 
 export interface UseAuthResult<T = DefaultLoginResponse> {
-  isLoggedIn: boolean;
+  isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<LoginResponse<T>>;
   logout: () => void;
   request: <R = any>(config: AxiosRequestConfig) => Promise<AxiosResponse<R>>;
+  getLoginResponse: () => T | null; // Method to get the stored login response
   isLoading: boolean;
   error: string | null;
 } 
