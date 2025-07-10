@@ -4,7 +4,7 @@ A lightweight React hook library for authentication with automatic token refresh
 
 [![Demo](https://img.shields.io/badge/Demo-Live-blue?style=for-the-badge&logo=react)](https://zhengliu92.github.io/react-auth-hook/)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/zhengliu92/react-auth-hook)
-[![npm](https://img.shields.io/npm/v/@zheng/react-auth-hook?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@zheng/react-auth-hook)
+[![npm](https://img.shields.io/npm/v/@zhengliu92/react-auth-hook?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@zhengliu92/react-auth-hook)
 
 ## Features
 
@@ -18,7 +18,7 @@ A lightweight React hook library for authentication with automatic token refresh
 ## Installation
 
 ```bash
-npm install @zheng/react-auth-hook
+npm install @zhengliu92/react-auth-hook
 ```
 
 ## Quick Start
@@ -26,7 +26,7 @@ npm install @zheng/react-auth-hook
 ### 1. Setup AuthProvider
 
 ```tsx
-import { AuthProvider } from '@zheng/react-auth-hook';
+import { AuthProvider } from '@zhengliu92/react-auth-hook';
 
 const config = {
   login_url: 'https://api.example.com/auth/login',
@@ -46,7 +46,7 @@ function App() {
 ### 2. Use the Hook
 
 ```tsx
-import { useAuth } from '@zheng/react-auth-hook';
+import { useAuth } from '@zhengliu92/react-auth-hook';
 
 function LoginComponent() {
   const { login, logout, isAuthenticated, request } = useAuth();
