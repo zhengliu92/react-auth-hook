@@ -1,14 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { AuthProvider, useAuth, type AuthConfig } from '../../src';
+import { AuthProvider, useAuth, httpClient, type AuthConfig } from '../../src';
 import { within, userEvent } from '@storybook/testing-library';
 import { expect } from '@storybook/jest';
 import React, { useState } from 'react';
 // Import the shared mock interceptors
 import './mockInterceptors';
+import { setupMockInterceptorsForInstance } from './mockInterceptors';
+
+// Setup mock interceptors for the httpClient instance
+setupMockInterceptorsForInstance(httpClient);
 
 // Demo Login Component
 function LoginDemo() {
-  const { login, logout, isAuthenticated, isLoading, error, request } = useAuth();
+  const { login, logout, isAuthenticated, isLoading, error } = useAuth();
   const [credentials, setCredentials] = useState({
     email: 'user@example.com',
     password: 'password123'
@@ -26,11 +30,8 @@ function LoginDemo() {
 
   const handleAPICall = async () => {
     try {
-      // Simulate an API call
-      const response = await request({
-        method: 'GET',
-        url: '/api/protected/user',
-      });
+      // Simulate an API call using httpClient
+      const response = await httpClient.get('/api/protected/user');
       setApiResult(`API Success: ${JSON.stringify(response.data.name)}`);
     } catch (error: any) {
       setApiResult(`API Error: ${error.message}`);

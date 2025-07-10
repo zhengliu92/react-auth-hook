@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useRef, ReactNode } from 'react';
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import React, { useState, useCallback, useRef, ReactNode, useEffect } from 'react';
+import axios from 'axios';
 import { AuthContext, initialAuthState } from './context';
 import { AuthConfig, AuthState, LoginResponse, AuthContextType, LoginCredentials, DefaultLoginResponse } from './types';
 import { getStoredTokens, setTokens, clearTokens } from './utils/tokenStorage';
+import { configureHttpClient, clearHttpClientAuth } from './utils/httpClient';
 
 interface AuthProviderProps<T = DefaultLoginResponse> {
   children: ReactNode;
@@ -80,6 +81,7 @@ export const AuthProvider = <T = DefaultLoginResponse>({ children, config }: Aut
   // Logout function
   const logout = useCallback(() => {
     clearTokens();
+    clearHttpClientAuth();
     setAuthState(initialAuthState);
     refreshPromiseRef.current = null;
   }, []);
@@ -103,13 +105,20 @@ export const AuthProvider = <T = DefaultLoginResponse>({ children, config }: Aut
 
     const refreshPromise = (async () => {
       try {
-        const response = await axios.post<LoginResponse<T>>(authConfig.refresh_url!, {
+        // Refresh endpoint typically only returns { access_token }
+        const response = await axios.post<{ access_token: string; refresh_token?: string }>(authConfig.refresh_url!, {
           refresh_token: currentRefreshToken,
         });
         
         const refreshData = response.data;
-        const access_token = (refreshData as any).access_token;
-        const new_refresh_token = (refreshData as any).refresh_token;
+        const access_token = refreshData.access_token;
+        
+        if (!access_token) {
+          throw new Error('Refresh response does not contain access_token');
+        }
+        
+        // Use new refresh token if provided, otherwise keep the current one
+        const new_refresh_token = refreshData.refresh_token || currentRefreshToken;
         
         // Update stored tokens
         setTokens(access_token, new_refresh_token);
@@ -117,7 +126,7 @@ export const AuthProvider = <T = DefaultLoginResponse>({ children, config }: Aut
         setAuthState(prev => ({
           ...prev,
           accessToken: access_token,
-          refreshToken: new_refresh_token || prev.refreshToken,
+          refreshToken: new_refresh_token,
         }));
         
         return access_token;
@@ -134,62 +143,28 @@ export const AuthProvider = <T = DefaultLoginResponse>({ children, config }: Aut
     return refreshPromise;
   }, [authConfig.refresh_url, authState.refreshToken, logout]);
 
-  // Request function with automatic Bearer token and refresh logic
-  const request = useCallback(async <R = any>(
-    requestConfig: AxiosRequestConfig
-  ): Promise<AxiosResponse<R>> => {
-    let currentAccessToken = authState.accessToken;
-    
-    // Add Authorization header if access token is available
-    const configWithAuth: AxiosRequestConfig = {
-      ...requestConfig,
-      headers: {
-        ...requestConfig.headers,
-        ...(currentAccessToken && { Authorization: `Bearer ${currentAccessToken}` }),
+  // Configure HTTP client with auth settings
+  useEffect(() => {
+    configureHttpClient(
+      {
+        refresh_url: authConfig.refresh_url,
+        access_expiration_code: authConfig.access_expiration_code,
       },
+      authConfig.refresh_url ? refreshToken : null
+    );
+
+    // Cleanup on unmount
+    return () => {
+      clearHttpClientAuth();
     };
+  }, [authConfig.refresh_url, authConfig.access_expiration_code, refreshToken]);
 
-    try {
-      const response = await axios<R>(configWithAuth);
-      return response;
-    } catch (error: any) {
-      // Check if error matches the access expiration code and refresh is available
-      const shouldRefresh = 
-        authConfig.access_expiration_code && 
-        error.response?.status === authConfig.access_expiration_code &&
-        authConfig.refresh_url &&
-        authState.refreshToken;
 
-      if (shouldRefresh) {
-        try {
-          // Attempt to refresh token
-          const newAccessToken = await refreshToken();
-          
-          // Retry the original request with new token
-          const retryConfig: AxiosRequestConfig = {
-            ...requestConfig,
-            headers: {
-              ...requestConfig.headers,
-              Authorization: `Bearer ${newAccessToken}`,
-            },
-          };
-          
-          return await axios<R>(retryConfig);
-        } catch (refreshError) {
-          // If refresh fails, throw the original error
-          throw error;
-        }
-      }
-      
-      throw error;
-    }
-  }, [authState.accessToken, authState.refreshToken, authConfig, refreshToken]);
 
   const contextValue: AuthContextType<T> = {
     ...authState,
     login,
     logout,
-    request,
     getLoginResponse,
     config: authConfig,
   };

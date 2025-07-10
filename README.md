@@ -43,13 +43,13 @@ function App() {
 }
 ```
 
-### 2. Use the Hook
+### 2. Use the Hook and HTTP Client
 
 ```tsx
-import { useAuth } from '@zhengliu92/react-auth-hook';
+import { useAuth, httpClient } from '@zhengliu92/react-auth-hook';
 
 function LoginComponent() {
-  const { login, logout, isAuthenticated, request } = useAuth();
+  const { login, logout, isAuthenticated } = useAuth();
 
   const handleLogin = async () => {
     try {
@@ -60,13 +60,20 @@ function LoginComponent() {
   };
 
   const fetchData = async () => {
-    const response = await request({ method: 'GET', url: '/api/protected' });
+    // httpClient automatically handles authentication and token refresh
+    const response = await httpClient.get('/api/protected');
     console.log(response.data);
+  };
+
+  const createUser = async (userData) => {
+    const response = await httpClient.post('/api/users', userData);
+    console.log('User created:', response.data);
   };
 
   return isAuthenticated ? (
     <div>
       <button onClick={fetchData}>Fetch Data</button>
+      <button onClick={() => createUser({ name: 'John' })}>Create User</button>
       <button onClick={logout}>Logout</button>
     </div>
   ) : (
@@ -94,11 +101,51 @@ const {
   isAuthenticated,        // boolean - auth status
   login,             // (credentials) => Promise<LoginResponse>
   logout,            // () => void
-  request,           // (config) => Promise<AxiosResponse> - auto Bearer token
   getLoginResponse,  // () => LoginResponse | null - retrieve login response data
   isLoading,         // boolean - request state
   error              // string | null - error message
 } = useAuth<CustomResponseType>(); // Optional: specify custom response type
+```
+
+### httpClient
+
+A pre-configured Axios instance with automatic authentication:
+
+```typescript
+import { httpClient, configureHttpClientDefaults } from '@zhengliu92/react-auth-hook';
+
+// All standard Axios methods are available
+await httpClient.get('/api/users');
+await httpClient.post('/api/users', userData);
+await httpClient.put('/api/users/123', userData);
+await httpClient.delete('/api/users/123');
+
+// Automatically handles:
+// - Adding Bearer token to requests
+// - Token refresh on 401 errors
+// - Retrying failed requests after refresh
+```
+
+### Custom HTTP Client Configuration
+
+Configure the httpClient with custom defaults like baseURL, headers, timeout, etc:
+
+```typescript
+import { configureHttpClientDefaults } from '@zhengliu92/react-auth-hook';
+
+// Configure custom defaults for the httpClient
+configureHttpClientDefaults({
+  baseURL: 'https://api.example.com',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Version': 'v1'
+  }
+});
+
+// Now all requests will use these defaults
+await httpClient.get('/users'); // Actually requests: https://api.example.com/users
+await httpClient.post('/users', userData); // Includes default headers + auth header
 ```
 
 ### Generic Login Response
@@ -139,14 +186,30 @@ if (storedResponse) {
 Configure `refresh_url` and `access_expiration_code` for automatic token renewal when requests fail with the specified status code.
 
 ### Authenticated Requests
-The `request` function automatically adds Bearer tokens and handles token refresh:
+The `httpClient` automatically adds Bearer tokens and handles token refresh:
 
 ```tsx
-const { request } = useAuth();
+import { httpClient, configureHttpClientDefaults } from '@zhengliu92/react-auth-hook';
 
 // All requests automatically include Authorization header
-await request({ method: 'GET', url: '/api/users' });
-await request({ method: 'POST', url: '/api/users', data: userData });
+await httpClient.get('/api/users');
+await httpClient.post('/api/users', userData);
+await httpClient.put('/api/users/123', updatedData);
+
+// You can also use with custom config per request
+await httpClient.request({
+  method: 'GET',
+  url: '/api/users',
+  headers: { 'Custom-Header': 'value' }
+});
+
+// Or configure defaults that apply to all requests
+configureHttpClientDefaults({
+  baseURL: 'https://api.example.com',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 ```
 
 ### Persistent Authentication

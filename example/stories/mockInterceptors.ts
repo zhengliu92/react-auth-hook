@@ -51,7 +51,7 @@ const mockAdapter = (config: AxiosRequestConfig): Promise<AxiosResponse> => {
       return;
     }
     
-    // Mock protected API endpoint
+    // Mock protected user API endpoint
     if (config.url === '/api/protected/user') {
       setTimeout(() => {
         const authHeader = config.headers?.Authorization;
@@ -66,13 +66,121 @@ const mockAdapter = (config: AxiosRequestConfig): Promise<AxiosResponse> => {
           };
           reject(error);
         } else {
+          // Handle different HTTP methods
+          if (config.method?.toUpperCase() === 'PUT') {
+            // Update user profile
+            const requestData = typeof config.data === 'string' ? JSON.parse(config.data) : config.data;
+            resolve({
+              data: {
+                id: 1,
+                name: requestData.name || 'John Doe',
+                email: 'john.doe@example.com',
+                username: 'johndoe',
+                lastModified: requestData.lastModified || new Date().toISOString()
+              },
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              config
+            } as AxiosResponse);
+          } else {
+            // Get user profile
+            resolve({
+              data: {
+                id: 1,
+                name: 'John Doe',
+                email: 'john.doe@example.com',
+                username: 'johndoe'
+              },
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              config
+            } as AxiosResponse);
+          }
+        }
+      }, 500);
+      return;
+    }
+    
+    // Mock protected posts API endpoint
+    if (config.url === '/api/protected/posts') {
+      setTimeout(() => {
+        const authHeader = config.headers?.Authorization;
+        if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
+          const error = new Error('Request failed with status code 401') as any;
+          error.response = {
+            status: 401,
+            statusText: 'Unauthorized',
+            data: { message: 'No valid authorization token' },
+            headers: {},
+            config
+          };
+          reject(error);
+        } else {
+          if (config.method?.toUpperCase() === 'POST') {
+            // Create new post
+            const requestData = typeof config.data === 'string' ? JSON.parse(config.data) : config.data;
+            resolve({
+              data: {
+                id: 'post_' + Date.now(),
+                title: requestData.title,
+                content: requestData.content,
+                timestamp: requestData.timestamp || new Date().toISOString(),
+                author: 'John Doe'
+              },
+              status: 201,
+              statusText: 'Created',
+              headers: {},
+              config
+            } as AxiosResponse);
+          } else {
+            // Get posts list
+            resolve({
+              data: [
+                {
+                  id: 'post_1',
+                  title: 'Welcome to the API Demo',
+                  content: 'This is a sample post from our mock API.',
+                  timestamp: new Date(Date.now() - 86400000).toISOString(),
+                  author: 'John Doe'
+                },
+                {
+                  id: 'post_2',
+                  title: 'Another Sample Post',
+                  content: 'Here is another example post to demonstrate the API.',
+                  timestamp: new Date(Date.now() - 43200000).toISOString(),
+                  author: 'John Doe'
+                }
+              ],
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              config
+            } as AxiosResponse);
+          }
+        }
+      }, 500);
+      return;
+    }
+    
+    // Mock protected posts delete endpoint (for specific post ID)
+    if (config.url?.startsWith('/api/protected/posts/') && config.method?.toUpperCase() === 'DELETE') {
+      setTimeout(() => {
+        const authHeader = config.headers?.Authorization;
+        if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
+          const error = new Error('Request failed with status code 401') as any;
+          error.response = {
+            status: 401,
+            statusText: 'Unauthorized',
+            data: { message: 'No valid authorization token' },
+            headers: {},
+            config
+          };
+          reject(error);
+        } else {
           resolve({
-            data: {
-              id: 1,
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-              username: 'johndoe'
-            },
+            data: { message: 'Post deleted successfully' },
             status: 200,
             statusText: 'OK',
             headers: {},
@@ -121,8 +229,13 @@ export const setupMockInterceptors = () => {
   axios.interceptors.request.clear();
   axios.interceptors.response.clear();
   
-  // Set the mock adapter for axios
+  // Set the mock adapter for axios defaults
   axios.defaults.adapter = mockAdapter as any;
+};
+
+// Setup function for httpClient instances
+export const setupMockInterceptorsForInstance = (axiosInstance: any) => {
+  axiosInstance.defaults.adapter = mockAdapter as any;
 };
 
 // Initialize mock interceptors immediately when imported

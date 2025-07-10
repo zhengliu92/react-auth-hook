@@ -2,13 +2,17 @@
 // Note: Install Storybook dependencies with: npm install to run these stories
 
 import React, { useState } from 'react';
-import { AuthProvider, useAuth } from '../../src';
+import { AuthProvider, useAuth, httpClient } from '../../src';
 // Import the shared mock interceptors
 import './mockInterceptors';
+import { setupMockInterceptorsForInstance } from './mockInterceptors';
+
+// Setup mock interceptors for the httpClient instance
+setupMockInterceptorsForInstance(httpClient);
 
 // Component to demo useAuth hook features
 function UseAuthDemo() {
-  const { login, logout, isAuthenticated, isLoading, error, request, getLoginResponse } = useAuth();
+  const { login, logout, isAuthenticated, isLoading, error, getLoginResponse } = useAuth();
   const [testResults, setTestResults] = useState<string[]>([]);
 
   const addResult = (message: string) => {
@@ -26,10 +30,7 @@ function UseAuthDemo() {
 
   const testAPICall = async () => {
     try {
-      const response = await request({
-        method: 'GET',
-        url: '/api/protected/user'
-      });
+      const response = await httpClient.get('/api/protected/user');
       addResult(`✅ API call successful: ${response.data.name}`);
     } catch (error: any) {
       addResult(`❌ API call failed: ${error.message}`);
@@ -134,7 +135,7 @@ function UseAuthDemo() {
         <ul style={{ margin: 0 }}>
           <li><strong>login(credentials):</strong> Authenticate with credentials</li>
           <li><strong>logout():</strong> Clear authentication state</li>
-          <li><strong>request(config):</strong> Make authenticated API calls</li>
+          <li><strong>httpClient:</strong> Make authenticated API calls (imported separately)</li>
           <li><strong>getLoginResponse():</strong> Retrieve the full login response data</li>
           <li><strong>isAuthenticated:</strong> Current authentication status</li>
           <li><strong>isLoading:</strong> Loading state during operations</li>

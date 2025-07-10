@@ -1,6 +1,7 @@
 // Main exports
 export { AuthProvider } from './AuthProvider';
 export { useAuth } from './useAuth';
+export { httpClient, configureHttpClientDefaults } from './utils/httpClient';
 
 // Types
 export type {

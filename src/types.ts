@@ -1,4 +1,4 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
+
 
 export interface AuthConfig {
   login_url: string;
@@ -32,7 +32,6 @@ export interface AuthState {
 export interface AuthContextType<T = DefaultLoginResponse> extends AuthState {
   login: (credentials: LoginCredentials) => Promise<LoginResponse<T>>;
   logout: () => void;
-  request: <R = any>(config: AxiosRequestConfig) => Promise<AxiosResponse<R>>;
   getLoginResponse: () => T | null; // Method to get the stored login response
   config: AuthConfig;
 }
@@ -41,7 +40,6 @@ export interface UseAuthResult<T = DefaultLoginResponse> {
   isAuthenticated: boolean;
   login: (credentials: LoginCredentials) => Promise<LoginResponse<T>>;
   logout: () => void;
-  request: <R = any>(config: AxiosRequestConfig) => Promise<AxiosResponse<R>>;
   getLoginResponse: () => T | null; // Method to get the stored login response
   isLoading: boolean;
   error: string | null;
